@@ -1,0 +1,63 @@
+/*
+Stylesheet for Habitiviz.
+*/
+
+/* General properties */
+
+* {
+    font-family: Courier;
+    color: grey;
+}
+
+body {
+    background-color: black;
+}
+
+div {
+    display: inline-block;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    color: red;
+}
+
+img {
+    max-width: 40vw;
+    height: auto;
+    margin-top: 10vw;
+    padding: 5vw;
+}
+
+/* Div properties */
+
+#habitiviz_canvas_div {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid grey;
+}
+
+/* Header properties */
+
+#header_div {
+    display: block;
+    text-align: justify;
+    border-bottom: 1px solid grey;
+    margin: 0vh 0vw 10vh 0vw;
+    padding: 10vh 10vw 10vh 10vw;
+}
+
+/* Footer div properties */
+
+#footer_div {
+    display: block;
+    clear: both;
+    border-top: 1px solid grey;
+    padding: 10vh 10vw 10vh 10vw;
+    text-align: center;
+}
