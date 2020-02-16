@@ -6,6 +6,61 @@ Script for Habitiviz.
 const canvas_width = 500;
 const canvas_height = 100;
 
+function read_habitica_data(history_file, graph) {
+    /*
+    Read data from habitica history files and apply it to a given graph.
+    Input:
+        -history_file   str
+            path to habitica history file
+        -graph          Graph instance
+    */
+
+    let dates_str_array = [];
+
+    // fetch earth positions through ajax request
+    $.ajax({
+        type: "GET",
+        url: history_file,
+        async: false,
+        success: function(data) {
+            var rows = data.split("\n");
+            for (var i = 1; i < rows.length - 1; i++) {
+                var cols = rows[i].split(",");
+                let date_obj = new Date(cols[3].slice(0, 10)); // date object
+                let date_str =
+                    cols[3].slice(0, 4) +
+                    cols[3].slice(5, 7) +
+                    cols[3].slice(8, 10); // date string, helps for findIndex see next lines
+                let task = cols[0];
+                let index = dates_str_array.findIndex(
+                    element => element == date_str
+                );
+                if (index == -1) {
+                    // if first task found for this date, create a new row in data array
+                    dates_str_array.push(date_str);
+                    graph.data_array.push([date_str, date_obj, [task]]);
+                } else {
+                    // if tasks already found on this date, add to list of task for this date's row
+                    graph.data_array[index][2].push(task);
+                }
+            }
+        }
+    });
+
+    // sort data array by dates
+    graph.data_array.sort(sort_function);
+    function sort_function(a, b) {
+        /*
+        See: https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
+        */
+        if (a[0] === b[0]) {
+            return 0;
+        } else {
+            return a[0] > b[0] ? -1 : 1;
+        }
+    }
+}
+
 class Graph {
     /*
     Class defining a graph.
@@ -15,6 +70,45 @@ class Graph {
         this.cells = [];
         this.cell_size = 8;
         this.cells_spacing = 10;
+        this.data_array = []; // 2d array: date string (YYYYmmdd), date object, tasks
+    }
+
+    fill_cells() {
+        /*
+        Read this graph data array and compute cells positions and colors.
+        */
+
+        // initiate variables
+        let cell_count = 0;
+        let week_count = 1;
+        let cell_day_of_week;
+        let cell_tasks_count;
+
+        // loop through this graph's data rows: from most recent day and backwards
+        while (cell_count < this.data_array.length - 6 || week_count == 16) {
+            // stop when less than a week is remaining unprocessed or at 4 months
+
+            cell_day_of_week = this.data_array[cell_count][1].getDay();
+
+            if (cell_day_of_week == 6) {
+                week_count += 1; // increase week count every sunday
+            }
+
+            cell_tasks_count = this.data_array[cell_count][2].length;
+
+            this.cells.push(
+                new Cell(
+                    500 - week_count * this.cells_spacing, // cell x value: depends on week count
+                    cell_day_of_week * this.cells_spacing, // cell y value: depends on day of week
+                    [
+                        cell_tasks_count * 10, // cell color: depends on tasks count
+                        cell_tasks_count * 10,
+                        cell_tasks_count * 10
+                    ]
+                )
+            );
+            cell_count += 1; // increase cells count
+        }
     }
 
     draw(sketch) {
@@ -51,22 +145,8 @@ class Cell {
 
 // creating graph showing total activities
 let total_graph = new Graph();
-
-// filling total_graph with dummy values for now
-for (let y = 9; y >= 0; y--) {
-    for (let x = 49; x >= 0; x--) {
-        let cell_id = x + y * 50;
-        let cell_total = 500;
-        let color = Math.floor(255 * cell_id / cell_total);
-        total_graph.cells.push(
-            new Cell(
-                x * total_graph.cells_spacing, // new cell X pos
-                y * total_graph.cells_spacing, // new cell y pos
-                [color, color, color] // new cell color
-            )
-        );
-    }
-}
+read_habitica_data("./data/habitica-tasks-history.csv", total_graph);
+total_graph.fill_cells();
 
 const s = sketch => {
     /*
