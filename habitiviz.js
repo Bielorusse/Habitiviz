@@ -6,6 +6,25 @@ Script for Habitiviz.
 const canvas_width = 500;
 const canvas_height = 100;
 
+function date_to_YYYYmmdd(input_date) {
+    /*
+    Format date object to YYYYmmdd string.
+    Input:
+        -input_date     Date instance
+    Output:
+        -output_date    str
+            format: YYYYmmdd
+    */
+    let year = input_date.getUTCFullYear();
+    let month = input_date.getUTCMonth() + 1;
+    let day = input_date.getDate();
+    return (
+        ("0000" + year).slice(-4) +
+        ("00" + month).slice(-2) +
+        ("00" + day).slice(-2)
+    );
+}
+
 function read_habitica_data(history_file, graph) {
     /*
     Read data from habitica history files and apply it to a given graph.
@@ -15,8 +34,6 @@ function read_habitica_data(history_file, graph) {
         -graph          Graph instance
     */
 
-    let dates_str_array = [];
-
     // fetch earth positions through ajax request
     $.ajax({
         type: "GET",
@@ -24,39 +41,42 @@ function read_habitica_data(history_file, graph) {
         async: false,
         success: function(data) {
             var rows = data.split("\n");
+
             for (var i = 1; i < rows.length - 1; i++) {
                 var cols = rows[i].split(",");
-                let date_obj = new Date(cols[3].slice(0, 10)); // date object
-                let date_str =
-                    cols[3].slice(0, 4) +
-                    cols[3].slice(5, 7) +
-                    cols[3].slice(8, 10); // date string, helps for findIndex see next lines
+
+                let date = new Date(cols[3].slice(0, 10));
                 let task = cols[0];
-                let index = dates_str_array.findIndex(
-                    element => element == date_str
+
+                // check if date is already in dates array
+                let index = graph.dates_array.findIndex(
+                    element =>
+                        date_to_YYYYmmdd(element.date) == date_to_YYYYmmdd(date)
                 );
                 if (index == -1) {
-                    // if first task found for this date, create a new row in data array
-                    dates_str_array.push(date_str);
-                    graph.data_array.push([date_str, date_obj, [task]]);
+                    // if first task found for this date, create a new row in dates array
+                    graph.dates_array.push({
+                        date: date,
+                        tasks: [task]
+                    });
                 } else {
                     // if tasks already found on this date, add to list of task for this date's row
-                    graph.data_array[index][2].push(task);
+                    graph.dates_array[index].tasks.push(task);
                 }
             }
         }
     });
 
-    // sort data array by dates
-    graph.data_array.sort(sort_function);
-    function sort_function(a, b) {
+    // sort dates array
+    graph.dates_array.sort(sort_dates_array);
+    function sort_dates_array(a, b) {
         /*
         See: https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
         */
-        if (a[0] === b[0]) {
+        if (a.date === b.date) {
             return 0;
         } else {
-            return a[0] > b[0] ? -1 : 1;
+            return a.date > b.date ? -1 : 1;
         }
     }
 }
@@ -70,12 +90,13 @@ class Graph {
         this.cells = [];
         this.cell_size = 8;
         this.cells_spacing = 10;
-        this.data_array = []; // 2d array: date string (YYYYmmdd), date object, tasks
+        this.dates_array = []; // contains for each date in database: date object, list of tasks
+        this.cols = 50;
     }
 
     fill_cells() {
         /*
-        Read this graph data array and compute cells positions and colors.
+        Read this graph dates array and compute cells positions and colors.
         */
 
         // initiate variables
@@ -84,24 +105,24 @@ class Graph {
         let cell_day_of_week;
         let cell_tasks_count;
 
-        // loop through this graph's data rows: from most recent day and backwards
-        while (cell_count < this.data_array.length - 6 || week_count == 16) {
+        while (cell_count < this.dates_array.length - 6 || week_count == 16) {
+            // loop through this graph's dates: from most recent day and backwards
             // stop when less than a week is remaining unprocessed or at 4 months
 
-            cell_day_of_week = this.data_array[cell_count][1].getDay();
+            cell_day_of_week = this.dates_array[cell_count].date.getDay();
 
             if (cell_day_of_week == 6) {
                 week_count += 1; // increase week count every sunday
             }
 
-            cell_tasks_count = this.data_array[cell_count][2].length;
+            cell_tasks_count = this.dates_array[cell_count].tasks.length;
 
             this.cells.push(
                 new Cell(
-                    500 - week_count * this.cells_spacing, // cell x value: depends on week count
-                    cell_day_of_week * this.cells_spacing, // cell y value: depends on day of week
+                    (this.cols - week_count) * this.cells_spacing, // cell x value
+                    cell_day_of_week * this.cells_spacing, // cell y value
                     [
-                        cell_tasks_count * 10, // cell color: depends on tasks count
+                        cell_tasks_count * 10, // cell color
                         cell_tasks_count * 10,
                         cell_tasks_count * 10
                     ]
