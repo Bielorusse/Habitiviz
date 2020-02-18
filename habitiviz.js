@@ -13,19 +13,18 @@ function date_to_YYYYmmdd(input_date) {
         -input_date     Date instance
     Output:
         -output_date    str
-            format: YYYYmmdd
     */
     let year = input_date.getUTCFullYear();
     let month = input_date.getUTCMonth() + 1;
     let day = input_date.getDate();
-    return (
+    let output_date =
         ("0000" + year).slice(-4) +
         ("00" + month).slice(-2) +
-        ("00" + day).slice(-2)
-    );
+        ("00" + day).slice(-2);
+    return output_date;
 }
 
-function read_habitica_data(history_file, graph) {
+function read_habitica_history(history_file, graph) {
     /*
     Read data from habitica history files and apply it to a given graph.
     Input:
@@ -34,42 +33,43 @@ function read_habitica_data(history_file, graph) {
         -graph          Graph instance
     */
 
-    // fetch earth positions through ajax request
+    // fetch habitica history data through ajax request
     $.ajax({
         type: "GET",
         url: history_file,
         async: false,
-        success: function(data) {
-            var rows = data.split("\n");
+        success: function(history_data) {
+            var rows = history_data.split("\n");
 
             for (var i = 1; i < rows.length - 1; i++) {
                 var cols = rows[i].split(",");
 
-                let date = new Date(cols[3].slice(0, 10));
+                // get this row's task name and performing date
                 let task = cols[0];
+                let date = new Date(cols[3].slice(0, 10));
 
-                // check if date is already in dates array
-                let index = graph.dates_array.findIndex(
+                // check if date is already in graph's data array
+                let index = graph.data.findIndex(
                     element =>
                         date_to_YYYYmmdd(element.date) == date_to_YYYYmmdd(date)
                 );
                 if (index == -1) {
-                    // if first task found for this date, create a new row in dates array
-                    graph.dates_array.push({
+                    // if first task found for this date, create a new item in graph's data array
+                    graph.data.push({
                         date: date,
                         tasks: [task]
                     });
                 } else {
-                    // if tasks already found on this date, add to list of task for this date's row
-                    graph.dates_array[index].tasks.push(task);
+                    // if date already in data array, add new task to this item's tasks list
+                    graph.data[index].tasks.push(task);
                 }
             }
         }
     });
 
-    // sort dates array
-    graph.dates_array.sort(sort_dates_array);
-    function sort_dates_array(a, b) {
+    // sort graph's data array
+    graph.data.sort(sort_graph_data);
+    function sort_graph_data(a, b) {
         /*
         See: https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
         */
@@ -90,13 +90,13 @@ class Graph {
         this.cells = [];
         this.cell_size = 8;
         this.cells_spacing = 10;
-        this.dates_array = []; // contains for each date in database: date object, list of tasks
+        this.data = []; // contains for each date in history: Date instance, list of tasks
         this.cols = 50;
     }
 
     fill_cells() {
         /*
-        Read this graph dates array and compute cells positions and colors.
+        Read this graph's data and compute cells positions and colors.
         */
 
         // initiate variables
@@ -105,17 +105,17 @@ class Graph {
         let cell_day_of_week;
         let cell_tasks_count;
 
-        while (cell_count < this.dates_array.length - 6 || week_count == 16) {
+        while (cell_count < this.data.length - 6 || week_count == 16) {
             // loop through this graph's dates: from most recent day and backwards
             // stop when less than a week is remaining unprocessed or at 4 months
 
-            cell_day_of_week = this.dates_array[cell_count].date.getDay();
+            cell_day_of_week = this.data[cell_count].date.getDay();
 
             if (cell_day_of_week == 6) {
                 week_count += 1; // increase week count every sunday
             }
 
-            cell_tasks_count = this.dates_array[cell_count].tasks.length;
+            cell_tasks_count = this.data[cell_count].tasks.length;
 
             this.cells.push(
                 new Cell(
@@ -166,9 +166,10 @@ class Cell {
 
 // creating graph showing total activities
 let total_graph = new Graph();
-read_habitica_data("./data/habitica-tasks-history.csv", total_graph);
+read_habitica_history("./data/habitica-tasks-history.csv", total_graph);
 total_graph.fill_cells();
 
+// creating processing sketch
 const s = sketch => {
     /*
     Function which takes a "sketch" object as argument and attaches properties such as setup and
@@ -198,5 +199,4 @@ const s = sketch => {
         total_graph.draw(sketch);
     };
 };
-
 let myp5 = new p5(s);
