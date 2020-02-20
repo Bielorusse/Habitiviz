@@ -6,6 +6,20 @@ Script for Habitiviz.
 const canvas_width = 500;
 const canvas_height = 100;
 
+// fetch habitica API credentials
+var habitica_api_user_id;
+var habitica_api_user_key;
+$.ajax({
+    url: "./config/habitica_api_credentials.json",
+    type: "GET",
+    dataType: "json",
+    async: false,
+    success: function(credentials) {
+        habitica_api_user_id = credentials.id;
+        habitica_api_user_key = credentials.key;
+    }
+});
+
 function date_to_YYYYmmdd(input_date) {
     /*
     Format date object to YYYYmmdd string.
@@ -35,9 +49,15 @@ function read_habitica_history(history_file, graph) {
 
     // fetch habitica history data through ajax request
     $.ajax({
+        url: "https://habitica.com/export/history.csv",
         type: "GET",
-        url: history_file,
+        dataType: "text",
+        cache: false,
         async: false,
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader("x-api-user", habitica_api_user_id);
+            xhr.setRequestHeader("x-api-key", habitica_api_user_key);
+        },
         success: function(history_data) {
             var rows = history_data.split("\n");
 
@@ -123,8 +143,8 @@ class Graph {
                     cell_day_of_week * this.cells_spacing, // cell y value
                     [
                         cell_tasks_count * 10, // cell color
-                        cell_tasks_count * 10,
-                        cell_tasks_count * 10
+                        20, // cell_tasks_count * 10,
+                        20 // cell_tasks_count * 10
                     ]
                 )
             );
