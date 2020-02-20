@@ -10,13 +10,13 @@ const canvas_height = 100;
 var habitica_api_user_id;
 var habitica_api_user_key;
 $.ajax({
-    url: "./config/habitica_api_credentials.json",
+    url: "./config/config.json",
     type: "GET",
     dataType: "json",
     async: false,
-    success: function(credentials) {
-        habitica_api_user_id = credentials.id;
-        habitica_api_user_key = credentials.key;
+    success: function(config) {
+        habitica_api_user_id = config.id;
+        habitica_api_user_key = config.key;
     }
 });
 
