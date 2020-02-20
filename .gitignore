@@ -3,4 +3,4 @@
 
 # Specific to habitiviz
 data/*
-config/habitica_api_credentials.json
+config/config.json
