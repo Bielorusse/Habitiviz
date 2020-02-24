@@ -14,7 +14,8 @@ def main():
     """
 
     # read config
-    with open("config/config.json", "r") as infile:
+    habitiviz_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    with open(os.path.join(habitiviz_path, "config", "config.json"), "r") as infile:
         config = json.load(infile)
 
     # create output file name
