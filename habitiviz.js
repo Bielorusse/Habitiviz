@@ -7,18 +7,21 @@ const canvas_width = 500;
 const canvas_height = 100;
 
 // fetch habitica API credentials
-var habitica_api_user_id;
-var habitica_api_user_key;
-$.ajax({
-    url: "./config/config.json",
-    type: "GET",
-    dataType: "json",
-    async: false,
-    success: function(config) {
-        habitica_api_user_id = config.id;
-        habitica_api_user_key = config.key;
+let habitica_api_user_id;
+let habitica_api_user_key;
+let config_request = new XMLHttpRequest();
+config_request.open("GET", "./config/config.json", false); // initialize synchronous request
+config_request.onload = function() {
+    // onload callback function
+    if (config_request.readyState === 4) {
+        if (config_request.status === 200 || config_requestfig.status == 0) {
+            let config = JSON.parse(config_request.responseText);
+            habitica_api_user_id = config.id;
+            habitica_api_user_key = config.key;
+        }
     }
-});
+};
+config_request.send(); // send request to server
 
 function date_to_YYYYmmdd(input_date) {
     /*
@@ -59,10 +62,10 @@ function read_habitica_history(history_file, graph) {
             xhr.setRequestHeader("x-api-key", habitica_api_user_key);
         },
         success: function(history_data) {
-            var rows = history_data.split("\n");
+            let rows = history_data.split("\n");
 
-            for (var i = 1; i < rows.length - 1; i++) {
-                var cols = rows[i].split(",");
+            for (let i = 1; i < rows.length - 1; i++) {
+                let cols = rows[i].split(",");
 
                 // get this row's task name and performing date
                 let task = cols[0];
@@ -136,6 +139,8 @@ class Graph {
             }
 
             cell_tasks_count = this.data[cell_count].tasks.length;
+
+            console.log(cell_tasks_count);
 
             this.cells.push(
                 new Cell(
