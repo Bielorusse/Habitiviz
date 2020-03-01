@@ -140,17 +140,24 @@ class Graph {
 
             cell_tasks_count = this.data[cell_count].tasks.length;
 
-            console.log(cell_tasks_count);
+            let cell_color; // define cell color
+            if (cell_tasks_count < 2) {
+                cell_color = [50, 50, 50];
+            } else if (2 <= cell_tasks_count && cell_tasks_count < 5) {
+                cell_color = [100, 100, 100];
+            } else if (5 <= cell_tasks_count && cell_tasks_count < 7) {
+                cell_color = [150, 150, 150];
+            } else if (7 <= cell_tasks_count && cell_tasks_count < 10) {
+                cell_color = [200, 200, 200];
+            } else if (10 <= cell_tasks_count) {
+                cell_color = [250, 250, 250];
+            }
 
             this.cells.push(
                 new Cell(
                     (this.cols - week_count) * this.cells_spacing, // cell x value
                     cell_day_of_week * this.cells_spacing, // cell y value
-                    [
-                        cell_tasks_count * 10, // cell color
-                        20, // cell_tasks_count * 10,
-                        20 // cell_tasks_count * 10
-                    ]
+                    cell_color
                 )
             );
             cell_count += 1; // increase cells count
