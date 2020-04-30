@@ -113,7 +113,7 @@ class Graph {
         this.cells = [];
         this.cell_size = 8;
         this.cells_spacing = 10;
-        this.data = []; // contains for each date in history: Date instance, list of tasks
+        this.data = []; // contains for each date in history: {date: Date obj, tasks: list of str}
         this.cols = 50;
     }
 

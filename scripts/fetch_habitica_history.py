@@ -1,5 +1,5 @@
 """
-Script to fetch habitica history data.
+Script to fetch habitica history data of the current week.
 """
 
 import os
@@ -10,7 +10,7 @@ import subprocess
 
 def main():
     """
-    Fetch habitica history data and store it in archive.
+    Fetch habitica history data of the current week and store it in archive.
     """
 
     # read config
@@ -43,6 +43,21 @@ def main():
     ]
     subprocess.call(command)
 
+    # copy only data from the current week in a tmp file
+    tmp_file = "{}_tmp.csv".format(os.path.splitext(output_file)[0])
+    with open(output_file, "r") as infile:
+        with open(tmp_file, "w") as outfile:
+            for row in [r for r in infile if not r == "" and not r.startswith("Task Name")]:
+
+                date_str = row.split(",")[3][:10] # parse date from history file
+                date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d") # convert in date obj
+                if date_obj.isocalendar()[1] == datetime.datetime.now().isocalendar()[1]:
+                    # if the item is within the current week, copy it in the tmp file
+                    outfile.write(row)
+
+    # replace the archive file with the tmp file
+    os.remove(output_file)
+    os.rename(tmp_file, output_file)
 
 if __name__ == "__main__":
 
