@@ -50,7 +50,7 @@ function read_habitica_history(history_file, graph) {
         -graph          Graph instance
     */
 
-    // fetch habitica history data through ajax request
+    // fetch online habitica history data through ajax request
     $.ajax({
         url: "https://habitica.com/export/history.csv",
         type: "GET",
@@ -90,18 +90,8 @@ function read_habitica_history(history_file, graph) {
         }
     });
 
-    // sort graph's data array
-    graph.data.sort(sort_graph_data);
-    function sort_graph_data(a, b) {
-        /*
-        See: https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
-        */
-        if (a.date === b.date) {
-            return 0;
-        } else {
-            return a.date > b.date ? -1 : 1;
-        }
-    }
+    // sort graph data per date.
+    graph.sort_data_per_date();
 }
 
 class Graph {
@@ -173,6 +163,25 @@ class Graph {
         for (let cell of this.cells) {
             sketch.fill(cell.color);
             sketch.square(cell.x, cell.y, this.cell_size);
+        }
+    }
+
+    sort_data_per_date() {
+        /*
+        Sort this graph's data per date.
+        */
+
+        // sort graph's data array
+        this.data.sort(sort_graph_data);
+        function sort_graph_data(a, b) {
+            /*
+            See: https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
+            */
+            if (a.date === b.date) {
+                return 0;
+            } else {
+                return a.date > b.date ? -1 : 1;
+            }
         }
     }
 }
