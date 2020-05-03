@@ -71,6 +71,42 @@ function read_habitica_history(history_file, graph) {
         -graph          Graph instance
     */
 
+    // fetch local archived habitica history
+    $.ajax({
+        url: "data/habitica_tasks_history.csv",
+        type: "GET",
+        dataType: "text",
+        cache: false,
+        async: false,
+        success: function(history_data) {
+            let rows = history_data.split("\n");
+
+            for (let i = 1; i < rows.length - 1; i++) {
+                let cols = rows[i].split(",");
+
+                // get this row's task name and performing date
+                let task = cols[0];
+                let date = new Date(cols[3].slice(0, 10));
+
+                // check if date is already in graph's data array
+                let index = graph.data.findIndex(
+                    element =>
+                        date_to_YYYYmmdd(element.date) == date_to_YYYYmmdd(date)
+                );
+                if (index == -1) {
+                    // if first task found for this date, create a new item in graph's data array
+                    graph.data.push({
+                        date: date,
+                        tasks: [task]
+                    });
+                } else {
+                    // if date already in data array, add new task to this item's tasks list
+                    graph.data[index].tasks.push(task);
+                }
+            }
+        }
+    });
+
     // fetch online habitica history data through ajax request
     $.ajax({
         url: "https://habitica.com/export/history.csv",
