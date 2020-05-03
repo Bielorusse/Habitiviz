@@ -23,6 +23,27 @@ config_request.onload = function() {
 };
 config_request.send(); // send request to server
 
+function get_week_number(d) {
+    /*
+    Get iso calendar week number (starts on mondays).
+    Input:
+        -d          Date instance
+    Output:
+        -week_nb    int
+    */
+    // Copy date so don't modify original
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    // Set to nearest Thursday: current date + 4 - current day number
+    // Make Sunday's day number 7
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    // Get first day of year
+    var year_start = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    // Calculate full weeks to nearest Thursday
+    var week_nb = Math.ceil(((d - year_start) / 86400000 + 1) / 7);
+    // Return array of year and week number
+    return week_nb;
+}
+
 function date_to_YYYYmmdd(input_date) {
     /*
     Format date object to YYYYmmdd string.
@@ -71,20 +92,26 @@ function read_habitica_history(history_file, graph) {
                 let task = cols[0];
                 let date = new Date(cols[3].slice(0, 10));
 
-                // check if date is already in graph's data array
-                let index = graph.data.findIndex(
-                    element =>
-                        date_to_YYYYmmdd(element.date) == date_to_YYYYmmdd(date)
-                );
-                if (index == -1) {
-                    // if first task found for this date, create a new item in graph's data array
-                    graph.data.push({
-                        date: date,
-                        tasks: [task]
-                    });
-                } else {
-                    // if date already in data array, add new task to this item's tasks list
-                    graph.data[index].tasks.push(task);
+                // only process tasks performed in the current week, other tasks are in archive
+                let today = new Date();
+
+                if (get_week_number(date) == get_week_number(today)) {
+                    // check if date is already in graph's data array
+                    let index = graph.data.findIndex(
+                        element =>
+                            date_to_YYYYmmdd(element.date) ==
+                            date_to_YYYYmmdd(date)
+                    );
+                    if (index == -1) {
+                        // if first task found for this date, create a new item in graph's data array
+                        graph.data.push({
+                            date: date,
+                            tasks: [task]
+                        });
+                    } else {
+                        // if date already in data array, add new task to this item's tasks list
+                        graph.data[index].tasks.push(task);
+                    }
                 }
             }
         }
