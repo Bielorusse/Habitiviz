@@ -118,7 +118,7 @@ class Graph {
         let cell_day_of_week;
         let cell_tasks_count;
 
-        while (cell_count < this.data.length - 6 || week_count == 16) {
+        while (cell_count < this.data.length || week_count == 16) {
             // loop through this graph's dates: from most recent day and backwards
             // stop when less than a week is remaining unprocessed or at 4 months
 
