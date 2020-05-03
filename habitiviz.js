@@ -32,7 +32,7 @@ function date_to_YYYYmmdd(input_date) {
         -output_date    str
     */
     let year = input_date.getUTCFullYear();
-    let month = input_date.getUTCMonth() + 1;
+    let month = input_date.getMonth() + 1;
     let day = input_date.getDate();
     let output_date =
         ("0000" + year).slice(-4) +
