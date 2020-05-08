@@ -114,19 +114,41 @@ class Graph {
     read_habitica_history(history_data, process_only_current_week) {
         /*
         Read data from habitica history files and apply it to this graph.
+        This function assumes that the habitica history stores the occurences of each task in
+        chronological order (oldest occurence appearing first in the file).
         Input:
             -history_data               str
             -process_only_current_week  bool
         */
 
+        // split rows
         let rows = history_data.split("\n");
+
+        // store tasks and their values in an object to check for rows where value unchanged
+        let tasks_values = {};
 
         for (let i = 1; i < rows.length - 1; i++) {
             let cols = rows[i].split(",");
 
-            // get this row's task name and performing date
+            // get this row's task name, performing date, and value
             let task = cols[0];
             let date = new Date(cols[3].slice(0, 10));
+            let value = parseFloat(cols[4]);
+
+            // ignore "Fumer" task
+            if (task == "Fumer") {
+                continue;
+            }
+
+            // avoid processing missed dailies or tasks with unchanged values
+            if (task in tasks_values) {
+                if (value <= tasks_values[task]) {
+                    // value unchanged or decreased since last occurence of this task
+                    tasks_values[task] = value; // store new value
+                    continue; // do not process this row
+                }
+            }
+            tasks_values[task] = value; // store this task's new value
 
             if (process_only_current_week) {
                 // only process tasks performed in the current week
