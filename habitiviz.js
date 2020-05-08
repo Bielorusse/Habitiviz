@@ -62,12 +62,10 @@ function date_to_YYYYmmdd(input_date) {
     return output_date;
 }
 
-function read_habitica_history(history_file, graph) {
+function read_habitica_history(graph) {
     /*
     Read data from habitica history files and apply it to a given graph.
     Input:
-        -history_file   str
-            path to habitica history file
         -graph          Graph instance
     */
 
@@ -270,7 +268,7 @@ class Cell {
 
 // creating graph showing total activities
 let total_graph = new Graph();
-read_habitica_history("./data/habitica-tasks-history.csv", total_graph);
+read_habitica_history(total_graph);
 total_graph.fill_cells();
 
 // creating processing sketch
