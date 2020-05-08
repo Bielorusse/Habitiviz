@@ -62,9 +62,9 @@ function date_to_YYYYmmdd(input_date) {
     return output_date;
 }
 
-function read_habitica_history(graph) {
+function load_habitica_history(graph) {
     /*
-    Read data from habitica history files and apply it to a given graph.
+    Load habitica history data and apply it to a given graph.
     Input:
         -graph          Graph instance
     */
@@ -77,31 +77,7 @@ function read_habitica_history(graph) {
         cache: false,
         async: false,
         success: function(history_data) {
-            let rows = history_data.split("\n");
-
-            for (let i = 1; i < rows.length - 1; i++) {
-                let cols = rows[i].split(",");
-
-                // get this row's task name and performing date
-                let task = cols[0];
-                let date = new Date(cols[3].slice(0, 10));
-
-                // check if date is already in graph's data array
-                let index = graph.data.findIndex(
-                    element =>
-                        date_to_YYYYmmdd(element.date) == date_to_YYYYmmdd(date)
-                );
-                if (index == -1) {
-                    // if first task found for this date, create a new item in graph's data array
-                    graph.data.push({
-                        date: date,
-                        tasks: [task]
-                    });
-                } else {
-                    // if date already in data array, add new task to this item's tasks list
-                    graph.data[index].tasks.push(task);
-                }
-            }
+            graph.read_habitica_history(history_data, false);
         }
     });
 
@@ -117,42 +93,9 @@ function read_habitica_history(graph) {
             xhr.setRequestHeader("x-api-key", habitica_api_user_key);
         },
         success: function(history_data) {
-            let rows = history_data.split("\n");
-
-            for (let i = 1; i < rows.length - 1; i++) {
-                let cols = rows[i].split(",");
-
-                // get this row's task name and performing date
-                let task = cols[0];
-                let date = new Date(cols[3].slice(0, 10));
-
-                // only process tasks performed in the current week, other tasks are in archive
-                let today = new Date();
-
-                if (get_week_number(date) == get_week_number(today)) {
-                    // check if date is already in graph's data array
-                    let index = graph.data.findIndex(
-                        element =>
-                            date_to_YYYYmmdd(element.date) ==
-                            date_to_YYYYmmdd(date)
-                    );
-                    if (index == -1) {
-                        // if first task found for this date, create a new item in graph's data array
-                        graph.data.push({
-                            date: date,
-                            tasks: [task]
-                        });
-                    } else {
-                        // if date already in data array, add new task to this item's tasks list
-                        graph.data[index].tasks.push(task);
-                    }
-                }
-            }
+            graph.read_habitica_history(history_data, true);
         }
     });
-
-    // sort graph data per date.
-    graph.sort_data_per_date();
 }
 
 class Graph {
@@ -166,6 +109,52 @@ class Graph {
         this.cells_spacing = 10;
         this.data = []; // contains for each date in history: {date: Date obj, tasks: list of str}
         this.cols = 50;
+    }
+
+    read_habitica_history(history_data, process_only_current_week) {
+        /*
+        Read data from habitica history files and apply it to this graph.
+        Input:
+            -history_data               str
+            -process_only_current_week  bool
+        */
+
+        let rows = history_data.split("\n");
+
+        for (let i = 1; i < rows.length - 1; i++) {
+            let cols = rows[i].split(",");
+
+            // get this row's task name and performing date
+            let task = cols[0];
+            let date = new Date(cols[3].slice(0, 10));
+
+            if (process_only_current_week) {
+                // only process tasks performed in the current week
+                let today = new Date();
+                if (get_week_number(date) != get_week_number(today)) {
+                    continue;
+                }
+            }
+
+            // check if date is already in graph's data array
+            let index = this.data.findIndex(
+                element =>
+                    date_to_YYYYmmdd(element.date) == date_to_YYYYmmdd(date)
+            );
+            if (index == -1) {
+                // if first task found for this date, create a new item in graph's data array
+                this.data.push({
+                    date: date,
+                    tasks: [task]
+                });
+            } else {
+                // if date already in data array, add new task to this item's tasks list
+                this.data[index].tasks.push(task);
+            }
+        }
+
+        // sort data per date after adding it
+        this.sort_data_per_date();
     }
 
     fill_cells() {
@@ -268,7 +257,7 @@ class Cell {
 
 // creating graph showing total activities
 let total_graph = new Graph();
-read_habitica_history(total_graph);
+load_habitica_history(total_graph);
 total_graph.fill_cells();
 
 // creating processing sketch
