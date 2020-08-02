@@ -116,6 +116,8 @@ class Graph {
         Read data from habitica history files and apply it to this graph.
         This function assumes that the habitica history stores the occurences of each task in
         chronological order (oldest occurence appearing first in the file).
+        Data format is an array containing for each day a date object and a list of tasks (str):
+        [[Date object, [str, ...]], ...]
         Input:
             -history_data               str
             -process_only_current_week  bool
