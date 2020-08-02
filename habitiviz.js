@@ -191,10 +191,14 @@ class Graph {
         let week_count = 1;
         let cell_day_of_week;
         let cell_tasks_count;
+        let cell_date_obj;
+        let cell_tasks;
 
         while (cell_count < this.data.length || week_count == 16) {
             // loop through this graph's dates: from most recent day and backwards
             // stop when less than a week is remaining unprocessed or at 4 months
+
+            cell_date_obj = this.data[cell_count].date;
 
             cell_day_of_week = this.data[cell_count].date.getDay();
 
@@ -202,7 +206,8 @@ class Graph {
                 week_count += 1; // increase week count every sunday
             }
 
-            cell_tasks_count = this.data[cell_count].tasks.length;
+            cell_tasks = this.data[cell_count].tasks;
+            cell_tasks_count = cell_tasks.length;
 
             let cell_color; // define cell color
             if (cell_tasks_count < 2) {
@@ -221,7 +226,9 @@ class Graph {
                 new Cell(
                     (this.cols - week_count) * this.cells_spacing, // cell x value
                     cell_day_of_week * this.cells_spacing, // cell y value
-                    cell_color
+                    cell_color,
+                    cell_date_obj,
+                    cell_tasks
                 )
             );
             cell_count += 1; // increase cells count
@@ -237,6 +244,18 @@ class Graph {
         for (let cell of this.cells) {
             sketch.fill(cell.color);
             sketch.square(cell.x, cell.y, this.cell_size);
+        }
+    }
+
+    tooltip(sketch) {
+        /*
+        Function to display tooltip for this graph's cells.
+        */
+        for (let cell of this.cells) {
+            if (cell.mouse_over(sketch.mouseX, sketch.mouseY, this.cell_size)) {
+                console.log(`Date: ${date_to_YYYYmmdd(cell.date_object)}`);
+                console.log(`Tasks: ${cell.tasks}`);
+            }
         }
     }
 
@@ -265,7 +284,7 @@ class Cell {
     Class defining a cell in a graph.
     */
 
-    constructor(x, y, color) {
+    constructor(x, y, color, date_object, tasks) {
         /*
         Constructor for the Cell class.
         Input:
@@ -276,6 +295,31 @@ class Cell {
         this.x = x;
         this.y = y;
         this.color = color;
+        this.date_object = date_object;
+        this.tasks = tasks;
+    }
+
+    mouse_over(mouse_x, mouse_y, cell_size) {
+        /*
+        Check if mouse is over this cell.
+        Input:
+            -mouse_x    float
+            -mouse_y    float
+            -cell_siez  float
+        Output:
+            -           bool
+        */
+
+        if (
+            this.x < mouse_x &&
+            mouse_x < this.x + cell_size &&
+            this.y < mouse_y &&
+            mouse_y < this.y + cell_size
+        ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
@@ -299,6 +343,13 @@ const s = sketch => {
         */
         let canvas = sketch.createCanvas(canvas_width, canvas_height);
         canvas.parent(habitiviz_canvas_div);
+    };
+
+    sketch.mousePressed = function() {
+        /*
+        P5.js mouseOver function calls total_graph tooltip function.
+        */
+        total_graph.tooltip(sketch);
     };
 
     sketch.draw = function() {
