@@ -250,11 +250,36 @@ class Graph {
     tooltip(sketch) {
         /*
         Function to display tooltip for this graph's cells.
+        Input:
+            -sketch     p5js sketch object
         */
+
+        // loop through cells
         for (let cell of this.cells) {
+            // check if mouse is over this cell
             if (cell.mouse_over(sketch.mouseX, sketch.mouseY, this.cell_size)) {
-                console.log(`Date: ${date_to_YYYYmmdd(cell.date_object)}`);
-                console.log(`Tasks: ${cell.tasks}`);
+                // handle text display
+                sketch.textSize(32);
+                sketch.fill([250, 250, 50]);
+
+                // create tooltip contents
+                let tooltip_contents = `Date:\n  ${date_to_YYYYmmdd(
+                    cell.date_object
+                )}\n`;
+                tooltip_contents += `Tasks:\n`;
+                for (let task of cell.tasks) {
+                    tooltip_contents += `  ${task}\n`;
+                }
+
+                // display tooltip
+                sketch.text(
+                    tooltip_contents,
+                    cell.x,
+                    cell.y,
+                    cell.x + 300,
+                    cell.y + 300
+                );
+                console.log(tooltip_contents);
             }
         }
     }
