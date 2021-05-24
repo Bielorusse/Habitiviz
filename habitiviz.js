@@ -191,28 +191,32 @@ class Graph {
 
         // loop through days
         for (let i = 0; i < this.cols * 7; i++) {
-
             // initiate variables
-            let cell_date
-            let cell_x
-            let cell_y
-            let cell_color
-            let cell_tasks = []
-            let cell_week_number
+            let cell_date;
+            let cell_x;
+            let cell_y;
+            let cell_color;
+            let cell_tasks = [];
+            let cell_week_number;
 
             // get date and week number
-            cell_date = new Date()
-            cell_date.setDate(cell_date.getDate() - i)
-            cell_week_number = get_week_number(cell_date)
+            cell_date = new Date();
+            cell_date.setDate(cell_date.getDate() - i);
+            cell_week_number = get_week_number(cell_date);
 
             // get cell position
-            cell_x = 500 - (today_week_number-cell_week_number+1) * this.cells_spacing
-            cell_y = 20 + (cell_date.getDay() + 6) % 7 * this.cells_spacing
+            cell_x =
+                500 -
+                (today_week_number - cell_week_number + 1) * this.cells_spacing;
+            cell_y = 20 + ((cell_date.getDay() + 6) % 7) * this.cells_spacing;
 
             // look for entries of this graph's data for this cell's date
-            for (let j = 0; j < this.data.length - 2; j++){
-                if (date_to_YYYYmmdd(cell_date) == date_to_YYYYmmdd(this.data[j].date)){
-                    cell_tasks = cell_tasks.concat(this.data[j].tasks) // fill this cell's tasks
+            for (let j = 0; j < this.data.length - 2; j++) {
+                if (
+                    date_to_YYYYmmdd(cell_date) ==
+                    date_to_YYYYmmdd(this.data[j].date)
+                ) {
+                    cell_tasks = cell_tasks.concat(this.data[j].tasks); // fill this cell's tasks
                 }
             }
 
@@ -231,13 +235,7 @@ class Graph {
 
             // add new cell to graph
             this.cells.push(
-                new Cell(
-                    cell_x,
-                    cell_y,
-                    cell_color,
-                    cell_date,
-                    cell_tasks
-                )
+                new Cell(cell_x, cell_y, cell_color, cell_date, cell_tasks)
             );
         }
     }
