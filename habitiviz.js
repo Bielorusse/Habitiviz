@@ -4,7 +4,7 @@ Script for Habitiviz.
 
 // global variables
 const canvas_width = 500;
-const canvas_height = 100;
+const canvas_height = 200;
 
 // fetch habitica API credentials
 let habitica_api_user_id;
@@ -105,7 +105,7 @@ class Graph {
 
     constructor() {
         this.cells = [];
-        this.cell_size = 8;
+        this.cell_size = 9;
         this.cells_spacing = 10;
         this.data = []; // contains for each date in history: {date: Date obj, tasks: list of str}
         this.cols = 50;
@@ -186,52 +186,61 @@ class Graph {
         Read this graph's data and compute cells positions and colors.
         */
 
-        // initiate variables
-        let cell_count = 0;
-        let week_count = 1;
-        let cell_day_of_week;
-        let cell_tasks_count;
-        let cell_date_obj;
-        let cell_tasks;
+        // get today week number
+        let today_week_number = get_week_number(new Date());
 
-        while (cell_count < this.data.length || week_count == 16) {
-            // loop through this graph's dates: from most recent day and backwards
-            // stop when less than a week is remaining unprocessed or at 4 months
+        // loop through days, for now arbitrary limit of 60 days
+        for (let i = 0; i < 60; i++) {
 
-            cell_date_obj = this.data[cell_count].date;
+            // initiate variables
+            let cell_date
+            let cell_x
+            let cell_y
+            let cell_color
+            let cell_tasks = []
+            let cell_week_number
 
-            cell_day_of_week = this.data[cell_count].date.getDay();
+            // get date and week number
+            cell_date = new Date()
+            cell_date.setDate(cell_date.getDate() - i)
+            cell_week_number = get_week_number(cell_date)
 
-            if (cell_day_of_week == 6) {
-                week_count += 1; // increase week count every sunday
+            // get cell position
+            cell_x = (this.cols - (today_week_number-cell_week_number)) * this.cells_spacing
+            cell_y = (cell_date.getDay() + 6) % 7 * this.cells_spacing
+            console.log(cell_date)
+            console.log(cell_y)
+
+            // look for entries of this graph's data for this cell's date
+            for (let j = 0; j < this.data.length - 2; j++){
+                if (date_to_YYYYmmdd(cell_date) == date_to_YYYYmmdd(this.data[j].date)){
+                    cell_tasks = cell_tasks.concat(this.data[j].tasks) // fill this cell's tasks
+                }
             }
 
-            cell_tasks = this.data[cell_count].tasks;
-            cell_tasks_count = cell_tasks.length;
-
-            let cell_color; // define cell color
-            if (cell_tasks_count < 2) {
+            // define this cell's color based on number of tasks performed
+            if (cell_tasks.length == 0) {
                 cell_color = [50, 50, 50];
-            } else if (2 <= cell_tasks_count && cell_tasks_count < 5) {
+            } else if (1 <= cell_tasks.length && cell_tasks.length < 3) {
                 cell_color = [100, 100, 100];
-            } else if (5 <= cell_tasks_count && cell_tasks_count < 7) {
+            } else if (3 <= cell_tasks.length && cell_tasks.length < 5) {
                 cell_color = [150, 150, 150];
-            } else if (7 <= cell_tasks_count && cell_tasks_count < 10) {
+            } else if (5 <= cell_tasks.length && cell_tasks.length < 7) {
                 cell_color = [200, 200, 200];
-            } else if (10 <= cell_tasks_count) {
+            } else if (7 <= cell_tasks.length) {
                 cell_color = [250, 250, 250];
             }
 
+            // add new cell to graph
             this.cells.push(
                 new Cell(
-                    (this.cols - week_count) * this.cells_spacing, // cell x value
-                    cell_day_of_week * this.cells_spacing, // cell y value
+                    cell_x,
+                    cell_y,
                     cell_color,
-                    cell_date_obj,
+                    cell_date,
                     cell_tasks
                 )
             );
-            cell_count += 1; // increase cells count
         }
     }
 
