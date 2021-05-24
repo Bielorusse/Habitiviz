@@ -105,10 +105,10 @@ class Graph {
 
     constructor() {
         this.cells = [];
-        this.cell_size = 9;
-        this.cells_spacing = 10;
+        this.cell_size = 20;
+        this.cells_spacing = 22;
         this.data = []; // contains for each date in history: {date: Date obj, tasks: list of str}
-        this.cols = 50;
+        this.cols = 40;
     }
 
     read_habitica_history(history_data, process_only_current_week) {
@@ -189,8 +189,8 @@ class Graph {
         // get today week number
         let today_week_number = get_week_number(new Date());
 
-        // loop through days, for now arbitrary limit of 60 days
-        for (let i = 0; i < 60; i++) {
+        // loop through days
+        for (let i = 0; i < this.cols * 7; i++) {
 
             // initiate variables
             let cell_date
@@ -206,10 +206,8 @@ class Graph {
             cell_week_number = get_week_number(cell_date)
 
             // get cell position
-            cell_x = (this.cols - (today_week_number-cell_week_number)) * this.cells_spacing
-            cell_y = (cell_date.getDay() + 6) % 7 * this.cells_spacing
-            console.log(cell_date)
-            console.log(cell_y)
+            cell_x = 500 - (today_week_number-cell_week_number+1) * this.cells_spacing
+            cell_y = 20 + (cell_date.getDay() + 6) % 7 * this.cells_spacing
 
             // look for entries of this graph's data for this cell's date
             for (let j = 0; j < this.data.length - 2; j++){
@@ -407,7 +405,7 @@ const s = sketch => {
 
     sketch.mousePressed = function() {
         /*
-        P5.js mouseOver function calls total_graph tooltip function.
+        P5.js mousePressed function calls total_graph tooltip function.
         */
         total_graph.tooltip(sketch);
     };
