@@ -268,27 +268,53 @@ class Graph {
             // check if mouse is over this cell
             if (cell.mouse_over(sketch.mouseX, sketch.mouseY, this.cell_size)) {
                 // handle text display
-                sketch.textSize(32);
-                sketch.fill([250, 250, 50]);
+                sketch.textSize(10);
+                sketch.fill([250, 250, 250]);
 
                 // create tooltip contents
-                let tooltip_contents = `Date:\n  ${date_to_YYYYmmdd(
+                let tooltip_contents = `Date\n  ${date_to_YYYYmmdd(
                     cell.date_object
                 )}\n`;
-                tooltip_contents += `Tasks:\n`;
-                for (let task of cell.tasks) {
-                    tooltip_contents += `  ${task}\n`;
+                tooltip_contents += `${cell.tasks.length} tasks\n`;
+                if (cell.tasks.length > 5) {
+                    for (let i = 0; i < 4; i++) {
+                        tooltip_contents += `  ${cell.tasks[i]}\n`;
+                    }
+                    tooltip_contents += `  ...\n`;
+                } else {
+                    for (let task of cell.tasks) {
+                        tooltip_contents += `  ${task}\n`;
+                    }
+                }
+
+                // compute tooltip position
+                let tooltip_width = 150;
+                let tooltip_height = 100;
+                let tooltip_ulx = sketch.mouseX + 10;
+                let tooltip_uly = sketch.mouseY + 10;
+                if (tooltip_ulx + tooltip_width > canvas_width) {
+                    tooltip_ulx = sketch.mouseX - tooltip_width;
+                }
+                if (tooltip_uly + tooltip_height > canvas_height) {
+                    tooltip_uly = sketch.mouseY - tooltip_height;
                 }
 
                 // display tooltip
+                sketch.fill([0, 0, 0]); // background color
+                sketch.rect(
+                    tooltip_ulx,
+                    tooltip_uly,
+                    tooltip_width,
+                    tooltip_height
+                );
+                sketch.fill([250, 250, 250]); // text color
                 sketch.text(
                     tooltip_contents,
-                    cell.x,
-                    cell.y,
-                    cell.x + 300,
-                    cell.y + 300
+                    tooltip_ulx,
+                    tooltip_uly,
+                    tooltip_width,
+                    tooltip_height
                 );
-                console.log(tooltip_contents);
             }
         }
     }
@@ -397,6 +423,9 @@ const s = sketch => {
 
         // drawing graph
         total_graph.draw(sketch);
+
+        // write tooltip when hovering or clicking cells
+        total_graph.tooltip(sketch);
     };
 };
 let myp5 = new p5(s);
