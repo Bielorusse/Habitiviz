@@ -222,15 +222,15 @@ class Graph {
 
             // define this cell's color based on number of tasks performed
             if (cell_tasks.length == 0) {
-                cell_color = [50, 50, 50];
-            } else if (1 <= cell_tasks.length && cell_tasks.length < 3) {
-                cell_color = [100, 100, 100];
-            } else if (3 <= cell_tasks.length && cell_tasks.length < 5) {
-                cell_color = [150, 150, 150];
-            } else if (5 <= cell_tasks.length && cell_tasks.length < 7) {
-                cell_color = [200, 200, 200];
-            } else if (7 <= cell_tasks.length) {
-                cell_color = [250, 250, 250];
+                cell_color = [72, 72, 72];
+            } else if (cell_tasks.length == 1) {
+                cell_color = [99, 99, 99];
+            } else if (cell_tasks.length == 2) {
+                cell_color = [144, 144, 144];
+            } else if (cell_tasks.length == 3) {
+                cell_color = [180, 180, 180];
+            } else if (4 <= cell_tasks.length) {
+                cell_color = [212, 212, 212];
             }
 
             // add new cell to graph
